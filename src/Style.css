@@ -1,0 +1,264 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    background-image: url('./nama.webp');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    color: #333;
+    min-height: 100vh; 
+}
+
+.container {
+    background-color: rgba(5, 0, 0, 0); 
+    padding: 15px; 
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 900px; 
+    width: 90%; 
+    margin: 0 auto; 
+    position: relative;
+    z-index: 2;
+    transform: translateY(20px); 
+}
+
+h1 {
+    text-align: center;
+    color: #ff6600; 
+    font-size: 2.5em;
+    margin-bottom: 20px;
+}
+
+h2, h3 {
+    color: #ff6600;
+    margin-bottom: 15px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+input[type="text"], input[type="number"], input[type="password"] {
+    padding: 10px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    transition: border 0.3s ease;
+}
+
+input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus {
+    border-color: #ff6600; 
+}
+
+button {
+    padding: 12px;
+    background-color: #ff6600; 
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-left: 10px;
+    margin-bottom: 10px;
+}
+
+button:hover {
+    background-color: #e65c00; 
+}
+
+nav {
+    display: flex;
+    gap: 10px; 
+    margin-bottom: 20px;
+    justify-content: center; 
+    font-size: 1em; 
+}
+
+nav a, .nav-button {
+    padding: 12px 20px;
+    background-color: #ff6600; 
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em; 
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+nav a:hover, .nav-button:hover {
+    background-color: #e65c00; 
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+
+thead {
+    background-color: #ff6600; 
+    color: white;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+tbody {
+    background-color: #f9f9f9;
+}
+
+
+th {
+    font-weight: bold;
+}
+
+td {
+    font-size: 0.95em;
+}
+
+.notification {
+    background-color: #11e41f;
+    color: #d8000c;
+    padding: 15px;
+    border-radius: 5px;
+    display: block;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.1em;
+}
+
+.form-container, .user-form-container {
+    background-color: rgba(250, 250, 250, 0.95); 
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+#productForm, #loginForm, #addUserForm, #updateUserForm, #deleteUserForm {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+
+.chart-container {
+    margin-top: 20px;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    font-size: x-large;
+}
+
+.rotating-images {
+    margin-top: 20px;
+    text-align: center;
+    font-size: x-large;
+}
+
+.rotating-images img {
+    width: 200px;
+    height: 200px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(162, 64, 64, 0.2);
+    transition: opacity 0.5s ease-in-out;
+    font-size: x-large;
+}
+
+
+select {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    color: #333;
+    background-color: #f0f0f0;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    appearance: none;
+    outline: none;
+    cursor: pointer;
+  }
+  
+  
+  select:hover {
+    border-color: #888;
+  }
+  
+  
+  select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  }
+  
+  
+  option {
+    padding: 10px;
+    font-size: 16px;
+    color: #333;
+    background-color: #ffffff;
+  }
+  
+
+
+@media (max-width: 768px) {
+    .container {
+        padding: 20px;
+        margin: 20px auto;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    table, thead, tbody, th, td {
+        display: block;
+    }
+
+    thead {
+        background-color: #ff6600; 
+        color: white;
+    }
+
+    th {
+        font-weight: bold;
+        padding: 15px;
+        text-align: left;
+    }
+
+    td {
+        display: block;
+        text-align: center;
+        padding: 10px;
+    }
+    
+    td:before {
+        content: attr(data-label);
+        display: block;
+        font-weight: bold;
+        color: #ff6600; 
+    }
+
+    form {
+        width: 100%;
+    }
+}
