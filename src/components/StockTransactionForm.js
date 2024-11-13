@@ -1,12 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-function StockTransactionForm({ products, setProducts, showNotification }) {
+function StockTransactionForm({ showNotification }) {
+  const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState('');
   const [quantityChange, setQuantityChange] = useState('');
-  const [transactionType, setTransactionType] = useState('add'); 
+  const [transactionType, setTransactionType] = useState('add');
 
-  
-  const handleTransaction = (e) => {
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/products');
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      showNotification('Error fetching products.');
+    }
+  };
+
+  const handleTransaction = async (e) => {
     e.preventDefault();
 
     if (!selectedProduct || !quantityChange) {
@@ -20,30 +34,42 @@ function StockTransactionForm({ products, setProducts, showNotification }) {
       return;
     }
 
-    const updatedProducts = [...products];
-    const product = updatedProducts[productIndex];
+    const product = products[productIndex];
     let updatedQuantity;
 
-    
     if (transactionType === 'add') {
       updatedQuantity = product.quantity + parseInt(quantityChange, 10);
       showNotification(`Added ${quantityChange} units to ${product.name}. Current quantity: ${updatedQuantity}`);
     } else if (transactionType === 'deduct') {
       updatedQuantity = product.quantity - parseInt(quantityChange, 10);
-
       if (updatedQuantity < 0) {
         showNotification(`Insufficient stock for ${product.name}.`);
         return;
       }
-
       showNotification(`Deducted ${quantityChange} units from ${product.name}. Current quantity: ${updatedQuantity}`);
     }
 
-    product.quantity = updatedQuantity;
-    setProducts(updatedProducts);
-    localStorage.setItem('products', JSON.stringify(updatedProducts));
+    // Update the product quantity in the database
+    try {
+      await fetch(`http://localhost:3000/api/products/${product.name}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: product.description,
+          category: product.category,
+          price: product.price,
+          quantity: updatedQuantity,
+        }),
+      });
+      // Update local state
+      const updatedProducts = [...products];
+      updatedProducts[productIndex].quantity = updatedQuantity;
+      setProducts(updatedProducts);
+    } catch (error) {
+      showNotification('Error updating product in the database.');
+    }
 
-    setQuantityChange(''); 
+    setQuantityChange('');
   };
 
   return (
@@ -64,10 +90,10 @@ function StockTransactionForm({ products, setProducts, showNotification }) {
 
         <select
           value={transactionType}
-          onChange={(e) => setTransactionType(e.target.value)} 
+          onChange={(e) => setTransactionType(e.target.value)}
         >
           <option value="add">Add New Stock</option>
-          <option value="deduct">Deduct Stock for sale</option>
+          <option value="deduct">Deduct Stock for Sale</option>
         </select>
 
         <input

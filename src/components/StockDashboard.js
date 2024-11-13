@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-function StockDashboard({ products, setProducts, showNotification }) {
+function StockDashboard({ showNotification }) {
+  const [products, setProducts] = useState([]);
   const [productName, setProductName] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
@@ -9,38 +10,70 @@ function StockDashboard({ products, setProducts, showNotification }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editProductIndex, setEditProductIndex] = useState(null);
 
-  const handleAddOrUpdateProduct = (e) => {
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/products');
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      showNotification('Error fetching products.');
+    }
+  };
+
+  const handleAddOrUpdateProduct = async (e) => {
     e.preventDefault();
-    const productsCopy = [...products];
+    if (!productName || !description || !category || !price || !quantity) {
+      showNotification('All fields must be filled.');
+      return;
+    }
+
+    const productData = {
+      name: productName,
+      description,
+      category,
+      price: parseFloat(price),
+      quantity: parseInt(quantity, 10),
+    };
 
     if (isEditing && editProductIndex !== null) {
-      productsCopy[editProductIndex] = { name: productName, description, category, price, quantity: parseInt(quantity, 10) };
-      showNotification(`${productName} updated successfully.`);
-
-      if (parseInt(quantity, 10) < 5) {
-        showNotification(`Warning: Stock for ${productName} is low (Quantity: ${quantity})`);
+      try {
+        await fetch(`http://localhost:3000/api/products/${products[editProductIndex].name}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productData),
+        });
+        fetchProducts();
+        showNotification(`${productName} updated successfully.`);
+        resetForm();
+      } catch (error) {
+        showNotification('Error updating product.');
       }
-
-      setIsEditing(false);
-      setEditProductIndex(null);
     } else {
-      const existingProduct = productsCopy.find(product => product.name.toLowerCase() === productName.toLowerCase());
+      const existingProduct = products.find(product => product.name.toLowerCase() === productName.toLowerCase());
       if (existingProduct) {
         showNotification(`Product ${productName} already exists.`);
         return;
       }
-      productsCopy.push({ name: productName, description, category, price, quantity: parseInt(quantity, 10) });
-      showNotification(`${productName} added successfully.`);
-
-      
-      if (parseInt(quantity, 10) < 5) {
-        showNotification(`Warning: Stock for ${productName} is low (Quantity: ${quantity})`);
+      try {
+        await fetch('http://localhost:3000/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productData),
+        });
+        fetchProducts();
+        showNotification(`${productName} added successfully.`);
+        resetForm();
+      } catch (error) {
+        showNotification('Error adding product.');
       }
     }
 
-    setProducts(productsCopy);
-    localStorage.setItem('products', JSON.stringify(productsCopy));
-    resetForm();
+    setIsEditing(false);
+    setEditProductIndex(null);
   };
 
   const handleEdit = (index) => {
@@ -54,11 +87,17 @@ function StockDashboard({ products, setProducts, showNotification }) {
     setEditProductIndex(index);
   };
 
-  const handleDelete = (index) => {
-    const productsCopy = products.filter((_, i) => i !== index);
-    setProducts(productsCopy);
-    localStorage.setItem('products', JSON.stringify(productsCopy));
-    showNotification(`Product deleted successfully.`);
+  const handleDelete = async (index) => {
+    try {
+      const productToDelete = products[index];
+      await fetch(`http://localhost:3000/api/products/${productToDelete.name}`, {
+        method: 'DELETE',
+      });
+      fetchProducts();
+      showNotification(`Product deleted successfully.`);
+    } catch (error) {
+      showNotification('Error deleting product.');
+    }
   };
 
   const resetForm = () => {
@@ -70,7 +109,7 @@ function StockDashboard({ products, setProducts, showNotification }) {
   };
 
   return (
-    <div className="stock-dashboard">
+    <div>
       <h2>Stock Dashboard</h2>
       <table>
         <thead>

@@ -1,8 +1,42 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 
-function Dashboard({ products }) {
+function Dashboard({ showNotification }) {
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const imageRef = useRef(0);
+    
+    // Wrap images in useMemo to prevent unnecessary re-renders
+    const images = useMemo(() => [
+        '/path/to/image1.jpg',
+        '/path/to/image2.jpg',
+        '/path/to/image3.jpg'
+    ], []);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/api/products');
+                const data = await response.json();
+                setProducts(data);
+            } catch (error) {
+                showNotification('Error fetching products.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
+
+        const rotateImages = setInterval(() => {
+            imageRef.current = (imageRef.current + 1) % images.length;
+            document.getElementById('rotating-image').src = images[imageRef.current];
+        }, 3000); 
+
+        return () => clearInterval(rotateImages); 
+    }, [images, showNotification]);
+
     const totalProducts = products.length;
     const lowStockCount = products.filter(product => product.quantity < 5).length;
     const averageQuantity =
@@ -21,17 +55,9 @@ function Dashboard({ products }) {
         ],
     };
 
-    const images = ['/path/to/image1.jpg', '/path/to/image2.jpg', '/path/to/image3.jpg'];
-    const imageRef = useRef(0);
-
-    useEffect(() => {
-        const rotateImages = setInterval(() => {
-            imageRef.current = (imageRef.current + 1) % images.length;
-            document.getElementById('rotating-image').src = images[imageRef.current];
-        }, 3000); 
-
-        return () => clearInterval(rotateImages); 
-    }, [images]);
+    if (loading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className="dashboard">

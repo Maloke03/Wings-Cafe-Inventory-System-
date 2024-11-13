@@ -10,69 +10,94 @@ function UserManagement({ showNotification, setIsLoggedIn, isLoginMode }) {
     const [editPassword, setEditPassword] = useState('');
     const [editingUserIndex, setEditingUserIndex] = useState(null);
 
-    
     useEffect(() => {
-        const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
-        setUsers(storedUsers);
+        fetchUsers();
     }, []);
 
-    const handleLogin = () => {
-        if (users.length === 0) {
-            showNotification('No users found. Please sign up first.');
-            return;
+    const fetchUsers = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/api/users');
+            const data = await response.json();
+            setUsers(data);
+        } catch (error) {
+            showNotification('Error fetching users.');
         }
+    };
 
-        const user = users.find(u => u.username === loginUsername && u.password === loginPassword);
-        if (user) {
+    const handleLogin = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/api/users/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: loginUsername, password: loginPassword }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message);
             setIsLoggedIn(true);
-            showNotification(`Welcome, ${user.username}!`);
+            showNotification(`Welcome, ${data.user.username}!`);
             setLoginUsername('');
             setLoginPassword('');
-        } else {
+        } catch (error) {
             showNotification('Invalid username or password.');
         }
     };
 
-    const handleAddUser = () => {
-        const existingUser = users.find(user => user.username === addUsername);
-        if (existingUser) {
-            showNotification('User already exists. Please choose a different username.');
-            return;
+    const handleAddUser = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/api/users/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: addUsername, password: addPassword }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message);
+            showNotification(`User ${data.user.username} added successfully. Logging you in now...`);
+            setLoginUsername(addUsername);
+            setLoginPassword(addPassword);
+            handleLogin();
+            setAddUsername('');
+            setAddPassword('');
+        } catch (error) {
+            showNotification(error.message);
         }
-
-        const newUser = { username: addUsername, password: addPassword };
-        const updatedUsers = [...users, newUser];
-        setUsers(updatedUsers);
-        localStorage.setItem('users', JSON.stringify(updatedUsers));
-        showNotification(`User ${addUsername} added successfully. Logging you in now...`);
-
-        
-        setLoginUsername(addUsername);
-        setLoginPassword(addPassword);
-        handleLogin(); 
-
-      
-        setAddUsername('');
-        setAddPassword('');
     };
 
-    const handleEditUser = () => {
-        const updatedUsers = users.map((user, index) => 
-            index === editingUserIndex ? { username: editUsername, password: editPassword } : user
-        );
-        setUsers(updatedUsers);
-        localStorage.setItem('users', JSON.stringify(updatedUsers));
-        showNotification(`User ${editUsername} updated successfully.`);
-        setEditUsername('');
-        setEditPassword('');
-        setEditingUserIndex(null);
+    const handleEditUser = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/api/users/update', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: users[editingUserIndex].username,
+                    password: editPassword,
+                    newUsername: editUsername,
+                    newPassword: editPassword,
+                }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message);
+            showNotification(`User ${data.user.username} updated successfully.`);
+            fetchUsers(); 
+            setEditUsername('');
+            setEditPassword('');
+            setEditingUserIndex(null);
+        } catch (error) {
+            showNotification(error.message);
+        }
     };
 
-    const handleDeleteUser = (index) => {
-        const updatedUsers = users.filter((_, i) => i !== index);
-        setUsers(updatedUsers);
-        localStorage.setItem('users', JSON.stringify(updatedUsers));
-        showNotification('User deleted successfully.');
+    const handleDeleteUser = async (index) => {
+        const username = users[index].username;
+        try {
+            const response = await fetch(`http://localhost:3000/api/users/${username}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) throw new Error('Error deleting user.');
+            showNotification('User deleted successfully.');
+            fetchUsers(); // Refresh user list
+        } catch (error) {
+            showNotification(error.message);
+        }
     };
 
     const handleStartEdit = (user, index) => {
@@ -122,15 +147,25 @@ function UserManagement({ showNotification, setIsLoggedIn, isLoginMode }) {
             {!isLoginMode && users.length > 0 && (
                 <>
                     <h3>Manage Users</h3>
-                    <ul>
-                        {users.map((user, index) => (
-                            <li key={index}>
-                                {user.username}
-                                <button onClick={() => handleStartEdit(user, index)}>Edit</button>
-                                <button onClick={() => handleDeleteUser(index)}>Delete</button>
-                            </li>
-                        ))}
-                    </ul>
+                    <table className="user-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {users.map((user, index) => (
+                                <tr key={index}>
+                                    <td>{user.username}</td>
+                                    <td>
+                                        <button onClick={() => handleStartEdit(user, index)}>Edit</button>
+                                        <button onClick={() => handleDeleteUser(index)}>Delete</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
 
                     {editingUserIndex !== null && (
                         <div>
