@@ -43,6 +43,11 @@ function UserManagement({ showNotification, setIsLoggedIn, isLoginMode }) {
     };
 
     const handleAddUser = async () => {
+        if (!addUsername || !addPassword) {
+            showNotification('Please input username and password.');
+            return;
+        }
+
         try {
             const response = await fetch('http://localhost:3000/api/users/signup', {
                 method: 'POST',
@@ -63,30 +68,47 @@ function UserManagement({ showNotification, setIsLoggedIn, isLoginMode }) {
     };
 
     const handleEditUser = async () => {
+        if (!editUsername || !editPassword) {
+            showNotification('Please input username and password.');
+            return;
+        }
+
         try {
             const response = await fetch('http://localhost:3000/api/users/update', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username: users[editingUserIndex].username,
-                    password: editPassword,
-                    newUsername: editUsername,
-                    newPassword: editPassword,
+                    username: users[editingUserIndex].username, // Existing username
+                    password: editPassword, // Password (if required for update)
+                    newUsername: editUsername, // New username (if being changed)
+                    newPassword: editPassword, // New password (if being changed)
                 }),
             });
+
             const data = await response.json();
-            if (!response.ok) throw new Error(data.message);
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Error updating user.');
+            }
+            
             showNotification(`User ${data.user.username} updated successfully.`);
-            fetchUsers(); 
-            setEditUsername('');
+            fetchUsers(); // Refresh the user list
+            setEditUsername(''); // Clear input fields
             setEditPassword('');
-            setEditingUserIndex(null);
+            setEditingUserIndex(null); // Reset editing index
         } catch (error) {
+            console.error("Edit User Error:", error); // Log error for debugging
             showNotification(error.message);
         }
     };
 
     const handleDeleteUser = async (index) => {
+        // Ensure the index is valid and the username exists
+        if (index < 0 || index >= users.length || !users[index].username) {
+            showNotification('Error: Invalid user. Please try again.');
+            return;
+        }
+
         const username = users[index].username;
         try {
             const response = await fetch(`http://localhost:3000/api/users/${username}`, {
