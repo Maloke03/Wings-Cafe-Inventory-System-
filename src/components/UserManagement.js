@@ -94,7 +94,7 @@ function UserManagement({ showNotification, setIsLoggedIn, isLoginMode }) {
             });
             if (!response.ok) throw new Error('Error deleting user.');
             showNotification('User deleted successfully.');
-            fetchUsers(); // Refresh user list
+            fetchUsers(); 
         } catch (error) {
             showNotification(error.message);
         }
