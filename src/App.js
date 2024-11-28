@@ -46,10 +46,10 @@ function App() {
                 ) : (
                     <>
                         <nav>
+                            <Link to="/statistics">Dashboard</Link>
                             <Link to="/dashboard">Product Management</Link>
                             <Link to="/transaction">Transaction</Link>
                             <Link to="/user-management">User Management</Link>
-                            <Link to="/statistics">Dashboard</Link>
                             <button onClick={handleLogout}>Logout</button>
                         </nav>
                         <Routes>
